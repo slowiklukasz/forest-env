@@ -125,6 +125,31 @@ Open the printed link `http://127.0.0.1:8888/lab?token=...` in the browser.
 
 ---
 
+## Pinned versions (`constraints.txt`)
+
+`constraints.txt` lists the exact package versions installed in the current image.
+It is generated inside the running container:
+
+```bash
+pip list --format=freeze > /notebooks/constraints.txt
+```
+
+(`pip list --format=freeze`, not `pip freeze` – the latter prints `@ file:///...` paths for conda packages.)
+
+Use it to install a CPU-only subset with matching versions, e.g. for local data processing without Docker:
+
+```powershell
+python -m venv .venv
+.venv\Scripts\activate
+pip install -e .[processing] -c https://raw.githubusercontent.com/slowiklukasz/forest-env/main/constraints.txt
+```
+
+Constraints only pin versions – packages not requested (spconv, pointops, CUDA libs) are not installed.
+
+**Rule:** every change of `Dockerfile` → wait for the build → regenerate `constraints.txt` in the new container → commit.
+
+---
+
 ## Verify the environment
 
 ```bash
@@ -138,4 +163,4 @@ Expected (Gradient): `2.1.0 True Quadro RTX 5000` and `OK`.
 
 ## TODO
 
-- Pin currently unpinned packages: run `pip list --format=freeze` inside the container and copy versions into the `Dockerfile`.
+- Optionally pin key unpinned packages directly in the `Dockerfile` (versions from `constraints.txt`), so rebuilds are fully reproducible.
